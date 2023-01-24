@@ -16,15 +16,17 @@ public class UserService {
     private UserRepository repository;
 
     public void create(UserDTO userDTO) {
+        User registeredUser = repository.findByUsername(userDTO.username());
 
-        User user = this.findByUsername(userDTO.username());
-
-        if (user == null) {
+        if (registeredUser == null) {
             repository.save(new User(userDTO));
         } else {
-            user.setAvatar(userDTO.avatar());
-            user.setUsername(userDTO.username());
-            repository.save(user);
+            repository.findById(registeredUser.getId()).map(user -> {
+                user.setAvatar(userDTO.avatar());
+                user.setUsername(userDTO.username());
+
+                return repository.save(user);
+            });
         }
 
     }
@@ -34,6 +36,6 @@ public class UserService {
     }
 
     protected User findByUsername(String username) {
-        return repository.findByUsernameIgnoreCase(username.trim());
+        return repository.findByUsername(username.trim());
     }
 }
